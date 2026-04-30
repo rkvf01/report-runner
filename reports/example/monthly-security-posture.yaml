@@ -1,0 +1,20 @@
+name: monthly-cloud-security-posture
+owner: security@example.com
+
+email:
+  from: reports@example.com
+  to:
+    - security-leadership@example.com
+  subject: "Monthly Cloud Security Posture Report"
+
+sources:
+  summary:
+    type: file
+    path: reports/example/mock-summary.json
+
+template: |
+  <h2>Monthly Cloud Security Posture Report</h2>
+  <p>Open critical findings: {{ sources.summary.open_critical }}</p>
+  <p>Open high findings: {{ sources.summary.open_high }}</p>
+  <p>Missing owners: {{ sources.summary.missing_owners }}</p>
+  <p>Expired exceptions: {{ sources.summary.expired_exceptions }}</p>
