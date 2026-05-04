@@ -1,8 +1,15 @@
 import typer
+from dotenv import load_dotenv
+
 from runner.config import load_report_config
 from runner.sources.file import fetch_file_source
 from runner.template import render_template
+from runner.emailer import send_email
+from runner.sources.http import fetch_http_source
+from runner.secrets import load_secrets
 
+
+load_dotenv()
 app = typer.Typer(help="Report Runner CLI")
 
 @app.command()
@@ -11,14 +18,17 @@ def run(path: str, dry_run: bool=typer.Option(False, "--dry-run", help="Render r
     typer.echo(f"Dry run : {dry_run}")
     try:
         config = load_report_config(path)
-        report_input={}
+        report_data={}
 
         for yaml_source_key, yaml_source_val in config["sources"].items():
             print(yaml_source_val)
             print(yaml_source_key)
 
             if yaml_source_val.get('type') == "file":
-                report_input[yaml_source_key] = fetch_file_source(yaml_source_val)
+                report_data[yaml_source_key] = fetch_file_source(yaml_source_val)
+            elif yaml_source_val.get('type') == "http":
+                secrets = load_secrets()
+                report_data[yaml_source_key] = fetch_http_source(yaml_source_val, secrets)
             else:
                 raise ValueError(f"Unsupported source type: {yaml_source_val.get('type')}")
 
@@ -26,7 +36,7 @@ def run(path: str, dry_run: bool=typer.Option(False, "--dry-run", help="Render r
             config["template"],
             {
                 "report": config,
-                "sources": report_input,
+                "sources": report_data,
             },
         )
             
@@ -39,6 +49,7 @@ def run(path: str, dry_run: bool=typer.Option(False, "--dry-run", help="Render r
     else:
         typer.echo("Report rendered successfully.")
         typer.echo(rendered_html)
+        send_email(config["email"], rendered_html)
 
 
 

@@ -1,0 +1,23 @@
+name: http-test-report
+owner: security@example.com
+
+email:
+  from: reports@example.com
+  to:
+    - security-leadership@example.com
+  subject: "HTTP Test Report"
+
+sources:
+  post:
+    type: http
+    method: GET
+    url: "https://jsonplaceholder.typicode.com/posts/1"
+    headers: 
+      Authorization : "Bearer {{secrets.API_TOKEN}}"
+
+template: |
+  <h2>HTTP Test Report</h2>
+
+  <p><b>Post ID:</b> {{ sources.post.id }}</p>
+  <p><b>Title:</b> {{ sources.post.title }}</p>
+  <p><b>Body:</b> {{ sources.post.body }}</p>
